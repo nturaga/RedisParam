@@ -1,3 +1,12 @@
+.RedisParam <- setRefClass(
+    "RedisParam",
+    contains = "BiocParallelParam",
+    fields = c(
+        hostname = "character", port = "integer", password = "character",
+        backend = "RedisBackend", is.worker = "logical"
+    )
+)
+
 .RedisParam_prototype <- c(
     .BiocParallelParam_prototype,
     list(
@@ -9,10 +18,6 @@
 #' @rdname RedisParam-class
 #'
 #' @title Enable redis-based parallel evaluation in BiocParallel
-#'
-#' @aliases .send,redis_worker-method .recv,redis_worker-method
-#'     .close,redis_worker-method .send_to,redis_manager-method
-#'     .recv_any,redis_manager-method
 #'
 #' @param workers integer(1) number of redis workers. For `is.worker
 #'     = FALSE`, this parameter is the maximum number of workers
@@ -43,14 +48,16 @@
 #'     & workers on a queue.
 #'
 #' @param redis.hostname character(1) host name of redis server,
-#'     from system environment variable `REDIS_HOST` or, by default,
-#'     `"127.0.0.1"`.
+#'     from system environment variable `REDISPARAM_HOST` or `REDIS_HOST`,
+#'     if both are not defined, the default `"127.0.0.1"` is used.
 #'
 #' @param redis.port integer(1) port of redis server, from system
-#'     environment variable `REDIS_PORT` or, by default, 6379.
+#'     environment variable `REDISPARAM_PORT` or `REDIS_PORT`,
+#'     if both are not defined, the default `6379` is used.
 #'
 #' @param redis.password character(1) or NULL, host password of redis server
-#'     or, by default, `NA_character_` (no password).
+#'     from system environment variable `REDISPARAM_PASSWORD` or `REDIS_PASSWORD`,
+#'     if both are not defined, the default `NA_character_` (no password) is used.
 #'
 #' @param is.worker logical(1) \code{bpstart()} creates worker-only
 #'     (\code{TRUE}), manager-only (\code{FALSE}), or manager and
@@ -103,9 +110,8 @@ RedisParam <-
 {
     if (!is.null(RNGseed))
         RNGseed <- as.integer(RNGseed)
-    if (!nzchar(redis.password)||is.null(redis.password)) {
+    if (!nzchar(redis.password) || is.null(redis.password))
         redis.password <- NA_character_
-    }
 
     prototype <- .prototype_update(
         .RedisParam_prototype,
